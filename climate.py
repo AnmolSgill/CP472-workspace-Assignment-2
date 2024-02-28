@@ -1,5 +1,6 @@
 import csv
 import time
+from datetime import datetime 
 from collections import defaultdict
 
 #climate data class to hold record in class instance
@@ -41,6 +42,14 @@ def convert_date(date, format):
         return (f"{months[date.split('-')[1]]} {date.split('-')[2].split(' ')[0]} {date.split('-')[0]}")
     elif format == "month":
         return (f"{months[date.split('-')[1]]} {date.split('-')[0]}")
+    
+# Aux function validate date
+def validate_date(date_str):
+    try:
+        date_object = datetime.strptime(date_str, "%YY-MM-DD")
+        return date_object >= datetime(2010, 4, 18) and date_object <= datetime(2024, 2, 8)
+    except ValueError:
+        return False
 
 # Analyze data - q2. Must include Highest total_precipitation (month and year). Day with highest max gust speed - print full date. Day with largest temperature fluctation
 def data_analysis(data: list[ClimateData]):
@@ -66,18 +75,58 @@ def data_analysis(data: list[ClimateData]):
     
     max_monthly_precipitation, max_precipitation = max(percipitation_per_month.items(), key=lambda value: value[1])
     print("\nClimate Data Analysis of Kitchener-Waterloo from 2010 to 2024")
-    print(f"The month with the most precipitation (mm): {max_monthly_precipitation}")
-
-
-
+    print(f"The month with the most precipitation (mm): {max_monthly_precipitation} with {max_precipitation:.2f}mm")
+    print(f"The date with the highest gust speed (km/h): {convert_date(max_gust_date, 'day')} with {max_gust}km/h ")
+    print(f"The date with the highest temperature fluctation (°C): {convert_date(max_temp_fluctuation_date, 'day')} with {max_temp_fluctuation:.2f}°C\n")
 
     return
 
-newlist = load_climatedata('climate-daily.csv')
-sumTemp = 0
-for row in newlist:
-    sumTemp += row.total_precipitation
-    
-print(sumTemp)
-    #print(row.local_date, row.speed_max_gust, row.total_precipitation, row.min_temperature, row.max_temperature, row.mean_temperature)
+#User report - multiple options for user to select from. This will be "main program" and will call functions to generate specific reports
+def user_report(data: list[ClimateData]):
+    while True:
+        print("Choose one of the following options:")
+        print("1) Average monthly weather data")
+        print("2) Weather records between two dates")
+        print("3) Exit")
+        command = input("Enter your option number: ")
+
+        if command == '1':
+            start_time = time.time()
+            avg_monthly_data(data)
+            end_time = time.time()
+            print(f"The average by month report took {end_time - start_time} seconds to run")
+        elif command == '2':
+            start_date = input("Enter a start date (YYYY-MM-DD): ")
+            while not validate_date(start_date):
+                print("Invalid date! Please enter a date between 2010-04-18 and 2024-02-08 in the format YYYY-MM-DD.")
+                start_date = input("Enter a start date (YYYY-MM-DD): ")
+            end_date = input("Enter a end date (YYYY-MM-DD): ")
+            while not validate_date(end_date):
+                print("Invalid date! Please enter a date between 2010-04-18 and 2024-02-08 in the format YYYY-MM-DD.")
+                end_date = input("Enter a end date (YYYY-MM-DD): ")
+            
+            date_range_report(data, start_date, end_date)
+        elif command == '3':
+            break
+        else:
+            print("Invalid option number. Please try again")
+
+    return
+            
+            
+
+def avg_monthly_data(data: list[ClimateData]):
+
+    return
+
+def date_range_report(data: list[ClimateData], start_date, end_date):
+
+    return
+
+
+
+        
+if __name__ == "__main__":
+    data = load_climatedata("climate-daily.csv")
+    data_analysis(data)
 
