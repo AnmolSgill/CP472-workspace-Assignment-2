@@ -37,6 +37,7 @@ def load_climatedata(filename):
 
 #convert date to readable format: YYYY-MM-DD to Month Day Year or Month Year as per the assignment guidelines (February 2010, March 2010 or February dd YYYY etc)
 def convert_date(date, format):
+    #Dictionary for storing months
     months = {"01": "January", "02": "February", "03": "March", "04": "April", "05": "May", "06": "June", "07": "July", "08": "August", "09": "September", "10": "October", "11": "November", "12": "December"}
     if format == "day":
         return (f"{months[date.split('-')[1]]} {date.split('-')[2].split(' ')[0]} {date.split('-')[0]}")
@@ -74,10 +75,10 @@ def data_analysis(data: list[ClimateData]):
             max_gust_date = item.local_date
     
     max_monthly_precipitation, max_precipitation = max(percipitation_per_month.items(), key=lambda value: value[1])
-    print("\nClimate Data Analysis of Kitchener-Waterloo from 2010 to 2024")
+    print("\nClimate Data Analysis of Kitchener-Waterloo from 2010 to 2024\n")
     print(f"The month with the most precipitation (mm): {max_monthly_precipitation} with {max_precipitation:.2f}mm")
     print(f"The date with the highest gust speed (km/h): {convert_date(max_gust_date, 'day')} with {max_gust}km/h ")
-    print(f"The date with the highest temperature fluctation (°C): {convert_date(max_temp_fluctuation_date, 'day')} with {max_temp_fluctuation:.2f}°C\n")
+    print(f"The date with the highest temperature fluctation (°C): {convert_date(max_temp_fluctuation_date, 'day')} with {max_temp_fluctuation:.2f}\n")
 
     return
 
@@ -114,18 +115,44 @@ def user_report(data: list[ClimateData]):
     return
             
             
-
+# Monthly average of each month in data set (Average for all values, but absolute min and max temperatures for each month)
 def avg_monthly_data(data: list[ClimateData]):
+    #dictionary for default values before searching for them in records
+    average = defaultdict(lambda: {"count": 0, "max_gust": 0, "total_precipitation": 0, "min_temperature": float('inf'), "max_temperature": float('-inf'), "mean_temperature": 0})
+
+    for item in data:
+        month = convert_date(item.local_date, "month")
+        average[month]["count"] += 1
+        average[month]["max_gust"] += item.speed_max_gust
+        average[month]["total_preciptitation"] += item.total_precipitation
+        average[month]["min_temperature"] = min(average[month]["min_temperature"], item.min_temperature)
+        average[month]["max_temperature"] = max(average[month]["max_temperature"], item.max_temperature)
+        average[month]["mean_temperature"] += item.mean_temperature
+    
+    for month, items in average.item():
+        print(f"Month: {month}")
+        print(f"Average max gust speed (km/h): {items['max_gust'] / items['count']:.2f}")
+        print(f"Total precipitation (mm): {items['total_precipitation']:.2f}")
+        print(f"Min temperature (°C): {items['min_temperature']:.2f}")
+        print(f"Max temperature (°C): {items['max_temperature']:.2f}")
+        print(f"Mean temperature (°C): {items['mean_temperature']:.2f}\n")
 
     return
 
+#Daily weather record average between two specified dates
 def date_range_report(data: list[ClimateData], start_date, end_date):
 
+    for item in data: 
+        if item.local_date >= start_date and item.local_date <= end_date:
+            print(f"\nDate: {convert_date(item.local_date, 'day')}")
+            print(f"Max gust speed (km/h): {item.speed_max_gust}")
+            print(f"Total precipitation (mm): {item.total_precipitation}")
+            print(f"Min temperature (°C): {item.min_temperature}" )
+            print(f"Max temperature (°C): {item.max_temperature}")
+            print(f"Mean temperature (°C): {item.mean_temperature}\n")
+
     return
 
-
-
-        
 if __name__ == "__main__":
     data = load_climatedata("climate-daily.csv")
     data_analysis(data)
