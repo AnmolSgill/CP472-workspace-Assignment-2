@@ -47,8 +47,8 @@ def convert_date(date, format):
 # Aux function validate date
 def validate_date(date_str):
     try:
-        date_object = datetime.strptime(date_str, "%YY-MM-DD")
-        return date_object >= datetime(2010, 4, 18) and date_object <= datetime(2024, 2, 8)
+        if date_str >= "2010-04-18" and date_str <= "2024-02-08":
+            return True
     except ValueError:
         return False
 
@@ -97,14 +97,18 @@ def user_report(data: list[ClimateData]):
             end_time = time.time()
             print(f"The average by month report took {end_time - start_time} seconds to run")
         elif command == '2':
-            start_date = input("Enter a start date (YYYY-MM-DD): ")
-            while not validate_date(start_date):
-                print("Invalid date! Please enter a date between 2010-04-18 and 2024-02-08 in the format YYYY-MM-DD.")
+            while True:
                 start_date = input("Enter a start date (YYYY-MM-DD): ")
-            end_date = input("Enter a end date (YYYY-MM-DD): ")
-            while not validate_date(end_date):
-                print("Invalid date! Please enter a date between 2010-04-18 and 2024-02-08 in the format YYYY-MM-DD.")
+                if validate_date(start_date):
+                    break
+                else:
+                    print("Invalid date! Please enter a date between 2010-04-18 and 2024-02-08 in the format YYYY-MM-DD.")
+            while True:
                 end_date = input("Enter a end date (YYYY-MM-DD): ")
+                if validate_date(end_date):
+                    break
+                else:
+                    print("Invalid date! Please enter a date between 2010-04-18 and 2024-02-08 in the format YYYY-MM-DD.")
             
             date_range_report(data, start_date, end_date)
         elif command == '3':
@@ -124,18 +128,18 @@ def avg_monthly_data(data: list[ClimateData]):
         month = convert_date(item.local_date, "month")
         average[month]["count"] += 1
         average[month]["max_gust"] += item.speed_max_gust
-        average[month]["total_preciptitation"] += item.total_precipitation
+        average[month]["total_precipitation"] += item.total_precipitation
         average[month]["min_temperature"] = min(average[month]["min_temperature"], item.min_temperature)
         average[month]["max_temperature"] = max(average[month]["max_temperature"], item.max_temperature)
         average[month]["mean_temperature"] += item.mean_temperature
     
-    for month, items in average.item():
+    for month, items in average.items():
         print(f"Month: {month}")
         print(f"Average max gust speed (km/h): {items['max_gust'] / items['count']:.2f}")
         print(f"Total precipitation (mm): {items['total_precipitation']:.2f}")
         print(f"Min temperature (°C): {items['min_temperature']:.2f}")
         print(f"Max temperature (°C): {items['max_temperature']:.2f}")
-        print(f"Mean temperature (°C): {items['mean_temperature']:.2f}\n")
+        print(f"Average mean temperature (°C): {items['mean_temperature'] / items['count']:.2f}\n")
 
     return
 
@@ -156,4 +160,4 @@ def date_range_report(data: list[ClimateData], start_date, end_date):
 if __name__ == "__main__":
     data = load_climatedata("climate-daily.csv")
     data_analysis(data)
-
+    user_report(data)
