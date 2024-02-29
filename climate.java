@@ -6,13 +6,13 @@ import java.io.*;
 
 class ClimateRecord{
     LocalDate date;
-    int speed_max_gust;
+    float speed_max_gust;
     float total_precipitation;
     float min_temperature;
     float max_temperature;
     float mean_temperature;
 
-    public ClimateRecord(LocalDate date, int speed_max_gust, float total_precipitation, float min_temperature, float max_temperature, float mean_temperature){
+    public ClimateRecord(LocalDate date, float speed_max_gust, float total_precipitation, float min_temperature, float max_temperature, float mean_temperature){
         this.date = date;
         this.speed_max_gust = speed_max_gust;
         this.total_precipitation = total_precipitation;
@@ -37,9 +37,9 @@ public class climate {
             System.out.println("1) Average monthly weather data");
             System.out.println("2) Daily weather records between two dates");
             System.out.println("3) Exit");
+            System.out.println("Enter your option number: ");
             Scanner scanner = new Scanner(System.in);
-            String command = scanner.nextLine();
-            scanner.close();
+            String command = scanner.nextLine().trim(); // Clear input buffer
 
             if (command.equals("1")){
                 long start_time = System.nanoTime();
@@ -53,6 +53,7 @@ public class climate {
                 String start_date = scanner.nextLine();
                 System.out.println("Enter a end date (YYYY-MM-DD): ");
                 String end_date = scanner.nextLine();
+                scanner.close();
                 date_range_report(records, LocalDate.parse(start_date), LocalDate.parse(end_date));
                 // Will validate dates in date range report function. Had issues implementing a validate_date function that worked in java the same way I did that worked in Python
             }else if (command.equals("3")){
@@ -72,13 +73,12 @@ public class climate {
             while((line = buf.readLine())!= null){
                 String[] values = line.split(",");
                 if(values.length < 6){
-                    System.out.println("Skip record. Missing data entry: "+ line);
                     continue;
                 }
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("YYYY-MM-DD H:mm");
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd H:mm");
                 LocalDate date = LocalDate.parse(values[0],formatter);
                 try{
-                    int speed_max_gust = Integer.parseInt(values[1]);
+                    float speed_max_gust = Float.parseFloat(values[1]);
                     float total_precipitation = Float.parseFloat(values[2]);
                     float min_temperature = Float.parseFloat(values[3]);
                     float max_temperature = Float.parseFloat(values[4]);
@@ -99,13 +99,13 @@ public class climate {
     public static void data_analysis(ArrayList<ClimateRecord> records){
         Map<String, Float> precipitation_per_month = new HashMap<>();
         // store montly precipitation records 
-        int max_gust = 0;
+        float max_gust = 0;
         float max_temperature_diff = 0;
         LocalDate max_fluctuation_date = null;
         LocalDate max_gust_day = null;
 
         for (ClimateRecord entry : records){
-            String month_string = entry.date.format(DateTimeFormatter.ofPattern("MM-YYYY"));
+            String month_string = entry.date.format(DateTimeFormatter.ofPattern("MM-yyyy"));
             precipitation_per_month.put(month_string, precipitation_per_month.getOrDefault(month_string,0f) + entry.total_precipitation);
 
             float temperature_diff = entry.max_temperature - entry.min_temperature;
@@ -131,8 +131,8 @@ public class climate {
 
         System.out.println("\nClimate Data Analysis of Kitchener-Waterloo from 2010 to 2024\n");
         System.out.println("The month with the most precipitation (mm): " + max_record.getKey() + " with " + String.format("%.2f", max_record.getValue()) + " mm");
-        System.out.println("The date with the highest gust speed (km/h): " + max_gust_day + " with" + max_gust + "km/h");
-        System.out.println("The date with the highest temperature fluctation (°C): " + max_fluctuation_date + " with " + String.format("%.2f", max_temperature_diff + "°C\n"));
+        System.out.println("The date with the highest gust speed (km/h): " + max_gust_day + " with " + max_gust + "km/h");
+        System.out.println("The date with the highest temperature fluctation (°C): " + max_fluctuation_date + " with " + String.format("%.2f", max_temperature_diff) + "°C\n");
     }
 
     // averages for each month in the data file
@@ -154,11 +154,12 @@ public class climate {
         for (Map.Entry<String, ClimateRecord> entry : month_averages.entrySet()){
             ClimateRecord record = entry.getValue();
             System.out.println("Month: " + entry.getKey());
-            System.out.println("Average max gust speed (km/h): " + record.speed_max_gust / records.size());
-            System.out.println("Total precipitation (mm): " + record.total_precipitation);
+            System.out.println("Average max gust speed (km/h): " + record.speed_max_gust);
+            System.out.println("Total precipitation (mm): " + String.format("%.2f", record.total_precipitation));
             System.out.println("Min temperature (°C): " + record.min_temperature);
             System.out.println("Max temperature (°C): " + record.max_temperature);
-            System.out.println("Mean temperature (°C): " + record.mean_temperature / records.size());
+            System.out.println("Mean temperature (°C): " + String.format("%.2f", record.mean_temperature / 30));
+            System.out.println("");
         }
 
     }
@@ -172,10 +173,8 @@ public class climate {
                 System.out.println("Total precipitation (mm): " + entry.total_precipitation);
                 System.out.println("Min temperature (°C): " + entry.min_temperature);
                 System.out.println("Max temperature (°C): " + entry.max_temperature);
-                System.out.println("Mean temperature (°C): " + entry.mean_temperature);
+                System.out.println("Mean temperature (°C): " + entry.mean_temperature + "\n");
             }
         }
-
     }
-
 }
